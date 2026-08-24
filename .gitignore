@@ -1,0 +1,46 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Logs
+*.log
+
+# Streamlit
+.streamlit/
+
+# Model artifacts (uncomment if you don't want to track large .pkl files)
+# models/*.pkl
+
+# Python scripts output
+*.pyc
+
+# Local package installs
+.venv/
+env/
+venv/
+
+# Notebook outputs
+.ipynb_checkpoints/
