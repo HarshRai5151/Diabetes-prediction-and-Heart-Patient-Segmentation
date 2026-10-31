@@ -15,6 +15,7 @@ __pycache__/
 # IDE settings
 .vscode/
 .idea/
+.vercel/
 
 # OS files
 .DS_Store

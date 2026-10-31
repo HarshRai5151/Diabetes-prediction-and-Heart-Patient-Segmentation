@@ -75,7 +75,7 @@ ML-Healthcare-Diagnostics/
 | **Visualisation** | Matplotlib, Seaborn |
 | **Machine Learning** | scikit-learn (Classification, Clustering, PCA, Scaling) |
 | **Explainability** | SHAP (SHapley Additive exPlanations) |
-| **Deployment** | Streamlit |
+| **Deployment** | Vercel (static dashboard + FastAPI) and Streamlit |
 | **Serialisation** | Joblib |
 
 ---
@@ -211,11 +211,11 @@ joblib.dump(kmeans_final, 'kmeans_model.pkl')  # K-Means (3 clusters)
 
 ---
 
-## 🖥️ Module 3 — Streamlit Deployment
+## 🖥️ Module 3 — Web Dashboard
 
-> **File:** `healthcare_diagnostics_app.py`
+> **Files:** `index.html` and `api/index.py` for Vercel; `healthcare_diagnostics_app.py` for local Streamlit use.
 
-A polished, production-ready web dashboard that loads the pre-trained models and exposes both modules as interactive tools for healthcare professionals.
+The project includes a static web dashboard and a FastAPI prediction endpoint for Vercel, as well as the original Streamlit dashboard for local use.
 
 ### App Features
 
@@ -265,7 +265,7 @@ A polished, production-ready web dashboard that loads the pre-trained models and
 
 3. **Install dependencies**
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements-local.txt
    ```
 
 4. **Run the Streamlit app**
@@ -276,6 +276,15 @@ A polished, production-ready web dashboard that loads the pre-trained models and
 5. Open your browser at **http://localhost:8501** 🎉
 
 > 🌐 **Or try the live demo:** [ML-Healthcare-Diagnostics on Streamlit Cloud](https://ml-healthcare-diagnostics-flndemsjreipr4znywjg4f.streamlit.app)
+
+### Deploy to Vercel
+
+1. Push this repository to GitHub and import it from the Vercel dashboard.
+2. Keep the project root as the Vercel **Root Directory**. No build command or output directory is required.
+3. Vercel serves `index.html` as the dashboard and deploys `api/index.py` as a Python function. The root `requirements.txt` installs the API dependencies; `vercel.json` includes the saved models in the function bundle.
+4. Deploy. The dashboard is served at `/`, and the prediction API is available at `/api/index`.
+
+The serialized scikit-learn models were created with scikit-learn 1.6.1, so that version is pinned in `requirements.txt` to avoid incompatible pickle loading. Model files must remain committed in `models/`. The Vercel API does not require the training datasets or notebooks.
 
 ### Re-running the Notebooks
 

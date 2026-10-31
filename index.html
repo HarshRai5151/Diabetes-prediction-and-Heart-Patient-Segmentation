@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10172a">
+    <meta name="description" content="Educational diabetes screening and heart patient clustering demo.">
+    <title>MediAI Diagnostics</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #172033;
+        background: #f3f6fb;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      header {
+        padding: 2rem max(1.25rem, calc((100% - 1080px) / 2));
+        color: white;
+        background: linear-gradient(125deg, #0d6efd, #6610f2);
+      }
+      header h1 { margin: 0; font-size: clamp(1.8rem, 5vw, 2.7rem); }
+      header p { margin: .65rem 0 0; color: #e7eaff; }
+      main { width: min(100% - 2rem, 1080px); margin: 1.5rem auto 3rem; }
+      .notice {
+        padding: .9rem 1rem;
+        border: 1px solid #f0d483;
+        border-radius: .75rem;
+        background: #fff8df;
+        color: #594300;
+        line-height: 1.55;
+      }
+      nav { display: flex; gap: .75rem; margin: 1.25rem 0; }
+      nav button {
+        flex: 1;
+        padding: .85rem 1rem;
+        border: 1px solid #d6deeb;
+        border-radius: .7rem;
+        color: #34425c;
+        background: white;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      nav button[aria-selected="true"] { border-color: #315ee8; color: #234bd0; background: #edf2ff; }
+      .panel, .results {
+        padding: clamp(1rem, 3vw, 1.6rem);
+        border: 1px solid #e0e6f0;
+        border-radius: 1rem;
+        background: white;
+        box-shadow: 0 12px 32px #1a2a4610;
+      }
+      .panel h2 { margin: 0 0 .4rem; }
+      .subtext { margin: 0 0 1.25rem; color: #5e6b80; line-height: 1.5; }
+      .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+      label { display: grid; gap: .4rem; color: #34425c; font-size: .92rem; font-weight: 650; }
+      input, select {
+        width: 100%;
+        min-height: 2.75rem;
+        padding: .6rem .7rem;
+        border: 1px solid #cbd4e2;
+        border-radius: .55rem;
+        color: #172033;
+        background: white;
+        font: inherit;
+      }
+      input:focus, select:focus, button:focus-visible { outline: 3px solid #9bb7ff; outline-offset: 2px; }
+      .submit {
+        width: 100%;
+        margin-top: 1.25rem;
+        padding: .85rem 1rem;
+        border: 0;
+        border-radius: .65rem;
+        color: white;
+        background: #315ee8;
+        font: inherit;
+        font-weight: 750;
+        cursor: pointer;
+      }
+      .submit:disabled { opacity: .65; cursor: wait; }
+      .results { margin-top: 1rem; line-height: 1.6; }
+      .results[hidden], form[hidden] { display: none; }
+      .results h2 { margin-top: 0; }
+      .result-low { border-left: 6px solid #26945b; }
+      .result-high { border-left: 6px solid #d33f49; }
+      .result-moderate { border-left: 6px solid #e2a600; }
+      .error { border-left: 6px solid #d33f49; color: #842029; background: #fff2f3; }
+      .probability { margin: .8rem 0; }
+      progress { width: 100%; height: 1rem; accent-color: #315ee8; }
+      footer { margin-top: 1rem; color: #657187; font-size: .85rem; text-align: center; }
+      @media (max-width: 640px) {
+        header { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+        .form-grid { grid-template-columns: 1fr; }
+        nav { flex-direction: column; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🏥 MediAI Diagnostics</h1>
+      <p>Educational machine-learning demonstrations for diabetes screening and heart patient clustering.</p>
+    </header>
+    <main>
+      <p class="notice"><strong>Important:</strong> This educational tool is not a medical device and does not provide a diagnosis. Do not use its predictions for treatment decisions; consult a qualified healthcare professional.</p>
+
+      <nav aria-label="Select a model">
+        <button type="button" id="diabetes-tab" aria-controls="diabetes-form" aria-selected="true">🩸 Diabetes prediction</button>
+        <button type="button" id="heart-tab" aria-controls="heart-form" aria-selected="false">❤️ Heart patient segmentation</button>
+      </nav>
+
+      <section class="panel">
+        <form id="diabetes-form">
+          <h2>Diabetes risk assessment</h2>
+          <p class="subtext">Enter the eight clinical features used by the saved Random Forest model.</p>
+          <div class="form-grid">
+            <label>Pregnancies<input name="pregnancies" type="number" min="0" max="20" step="1" value="1" required></label>
+            <label>Glucose level (mg/dL)<input name="glucose" type="number" min="0" max="300" step="1" value="120" required></label>
+            <label>Blood pressure (mm Hg)<input name="blood_pressure" type="number" min="0" max="200" step="1" value="70" required></label>
+            <label>Skin thickness (mm)<input name="skin_thickness" type="number" min="0" max="100" step="1" value="20" required></label>
+            <label>Insulin (µU/mL)<input name="insulin" type="number" min="0" max="900" step="1" value="79" required></label>
+            <label>BMI (kg/m²)<input name="bmi" type="number" min="0" max="70" step="0.1" value="25" required></label>
+            <label>Diabetes pedigree function<input name="dpf" type="number" min="0" max="3" step="0.001" value="0.5" required></label>
+            <label>Age (years)<input name="age" type="number" min="1" max="120" step="1" value="33" required></label>
+          </div>
+          <button class="submit" type="submit">🔬 Run diabetes screening</button>
+        </form>
+
+        <form id="heart-form" hidden>
+          <h2>Heart patient segmentation</h2>
+          <p class="subtext">Provide the UCI heart-disease features. The saved scaler and K-Means model assign a cluster.</p>
+          <div class="form-grid">
+            <label>Age<input name="age" type="number" min="20" max="100" step="1" value="50" required></label>
+            <label>Sex<select name="sex"><option value="0">Female (0)</option><option value="1" selected>Male (1)</option></select></label>
+            <label>Chest pain type<select name="cp"><option value="0">0 — Typical angina</option><option value="1">1 — Atypical angina</option><option value="2">2 — Non-anginal pain</option><option value="3">3 — Asymptomatic</option></select></label>
+            <label>Resting blood pressure (mm Hg)<input name="trestbps" type="number" min="80" max="200" step="1" value="120" required></label>
+            <label>Serum cholesterol (mg/dL)<input name="chol" type="number" min="100" max="600" step="1" value="200" required></label>
+            <label>Fasting blood sugar &gt; 120 mg/dL<select name="fbs"><option value="0">No</option><option value="1">Yes</option></select></label>
+            <label>Resting ECG<select name="restecg"><option value="0">0 — Normal</option><option value="1">1 — ST-T wave abnormality</option><option value="2">2 — Left ventricular hypertrophy</option></select></label>
+            <label>Maximum heart rate (bpm)<input name="thalach" type="number" min="60" max="220" step="1" value="150" required></label>
+            <label>Exercise-induced angina<select name="exang"><option value="0">No</option><option value="1">Yes</option></select></label>
+            <label>ST depression (oldpeak)<input name="oldpeak" type="number" min="0" max="10" step="0.1" value="1" required></label>
+            <label>Slope of peak exercise ST segment<select name="slope"><option value="0">0 — Upsloping</option><option value="1">1 — Flat</option><option value="2">2 — Downsloping</option></select></label>
+            <label>Major vessels (ca)<select name="ca"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+            <label>Thalassemia<select name="thal"><option value="0">0 — Normal</option><option value="1">1 — Fixed defect</option><option value="2">2 — Reversible defect</option><option value="3">3 — Other</option></select></label>
+          </div>
+          <button class="submit" type="submit">🫀 Identify patient segment</button>
+        </form>
+      </section>
+
+      <section id="results" class="results" aria-live="polite" hidden></section>
+      <footer>Model outputs are experimental and may be incorrect. They are not a substitute for professional medical advice.</footer>
+    </main>
+    <script>
+      const diabetesTab = document.querySelector("#diabetes-tab");
+      const heartTab = document.querySelector("#heart-tab");
+      const diabetesForm = document.querySelector("#diabetes-form");
+      const heartForm = document.querySelector("#heart-form");
+      const results = document.querySelector("#results");
+
+      function selectForm(isHeart) {
+        diabetesForm.hidden = isHeart;
+        heartForm.hidden = !isHeart;
+        diabetesTab.setAttribute("aria-selected", String(!isHeart));
+        heartTab.setAttribute("aria-selected", String(isHeart));
+        results.hidden = true;
+      }
+
+      diabetesTab.addEventListener("click", () => selectForm(false));
+      heartTab.addEventListener("click", () => selectForm(true));
+
+      function formPayload(form, action) {
+        const payload = Object.fromEntries(new FormData(form).entries());
+        for (const [key, value] of Object.entries(payload)) {
+          payload[key] = Number(value);
+        }
+        payload.action = action;
+        return payload;
+      }
+
+      function showResult(data) {
+        results.className = "results";
+        if (data.type === "diabetes") {
+          const highRisk = data.risk === "high";
+          results.classList.add(highRisk ? "result-high" : "result-low");
+          const riskLabel = highRisk ? "Higher model-estimated risk" : "Lower model-estimated risk";
+          results.innerHTML = `
+            <h2>${riskLabel}</h2>
+            <p>This model's estimated probability is not a diagnosis.</p>
+            <div class="probability"><strong>Diabetes probability: ${(data.diabetic_probability * 100).toFixed(1)}%</strong>
+              <progress max="1" value="${data.diabetic_probability}"></progress>
+            </div>
+            <div class="probability"><strong>Non-diabetes probability: ${(data.healthy_probability * 100).toFixed(1)}%</strong>
+              <progress max="1" value="${data.healthy_probability}"></progress>
+            </div>
+            <p>${highRisk ? "Please discuss appropriate screening with a qualified healthcare professional." : "Continue routine healthcare and discuss any concerns with a qualified professional."}</p>`;
+        } else {
+          const colors = ["result-low", "result-moderate", "result-high"];
+          results.classList.add(colors[data.cluster] || "result-moderate");
+          results.innerHTML = `<h2>Cluster ${data.cluster} — ${data.label}</h2>
+            <p>${data.description}</p><p><strong>Next step:</strong> ${data.recommendation}</p>
+            <p>Clusters are learned groupings and should not be interpreted as a clinical risk score.</p>`;
+        }
+        results.hidden = false;
+        results.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      async function submitPrediction(event, action) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const button = form.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.textContent = "Analyzing…";
+        results.hidden = true;
+        try {
+          const response = await fetch("/api/index", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formPayload(form, action)),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            const message = typeof data.detail === "string" ? data.detail : "Please review the entered values and try again.";
+            throw new Error(message);
+          }
+          showResult(data);
+        } catch (error) {
+          results.className = "results error";
+          const heading = document.createElement("h2");
+          heading.textContent = "Prediction unavailable";
+          const message = document.createElement("p");
+          message.textContent = error instanceof Error ? error.message : "An unexpected error occurred.";
+          results.replaceChildren(heading, message);
+          results.hidden = false;
+        } finally {
+          button.disabled = false;
+          button.textContent = action === "diabetes" ? "🔬 Run diabetes screening" : "🫀 Identify patient segment";
+        }
+      }
+
+      diabetesForm.addEventListener("submit", (event) => submitPrediction(event, "diabetes"));
+      heartForm.addEventListener("submit", (event) => submitPrediction(event, "heart"));
+    </script>
+  </body>
+</html>
